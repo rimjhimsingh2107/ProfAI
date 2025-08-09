@@ -1,0 +1,331 @@
+/* ProfAI Chrome Extension Styles */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Keyframes for animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Main popup styles */
+.profai-popup {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  width: 380px;
+  max-width: 90vw;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: fadeIn 0.3s ease-out;
+  overflow: hidden;
+}
+
+.profai-popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.profai-logo {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.profai-logo-icon {
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+.profai-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.profai-close:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.profai-popup-content {
+  padding: 20px;
+}
+
+.profai-selected-text {
+  background: #f8f9ff;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  border-left: 4px solid #667eea;
+}
+
+.profai-explanation {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.profai-actions {
+  display: flex;
+  gap: 12px;
+}
+/* Button styles */
+.profai-btn {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profai-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.profai-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.profai-btn-secondary {
+  background: #f1f3f4;
+  color: #5f6368;
+  border: 1px solid #e0e0e0;
+}
+
+.profai-btn-secondary:hover {
+  background: #e8eaed;
+  border-color: #d0d0d0;
+}
+
+.profai-btn-small {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: #f1f3f4;
+  color: #5f6368;
+  transition: background-color 0.2s ease;
+}
+
+.profai-btn-small:hover {
+  background: #e8eaed;
+}
+
+.profai-btn-small.profai-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+/* Floating assistant styles */
+.profai-floating-assistant {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 320px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e0e0e0;
+  animation: slideIn 0.4s ease-out;
+  z-index: 9999;
+}
+
+.profai-assistant-content {
+  padding: 16px;
+}
+
+.profai-assistant-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.profai-assistant-message {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.profai-assistant-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Notification styles */
+.profai-notification {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Highlighted terms */
+.profai-highlight {
+  background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+  padding: 2px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px dashed #667eea;
+}
+
+.profai-highlight:hover {
+  background: linear-gradient(120deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* Learning suggestions panel */
+.profai-suggestions {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 300px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e0e0e0;
+  overflow: hidden;
+  animation: slideIn 0.4s ease-out;
+  z-index: 9998;
+}
+
+.profai-suggestions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.profai-suggestions-header button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.profai-suggestions-header button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.profai-suggestions-content {
+  padding: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.profai-suggestion-item {
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #f0f0f0;
+}
+
+.profai-suggestion-item:hover {
+  background: #f8f9ff;
+  border-color: #667eea;
+  transform: translateY(-1px);
+}
+
+.profai-suggestion-item strong {
+  color: #333;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.profai-suggestion-item p {
+  color: #666;
+  font-size: 13px;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .profai-popup {
+    width: 95vw;
+    margin: 10px;
+  }
+  
+  .profai-floating-assistant,
+  .profai-suggestions {
+    width: 90vw;
+    right: 5vw;
+  }
+  
+  .profai-actions {
+    flex-direction: column;
+  }
+  
+  .profai-btn {
+    width: 100%;
+  }
+}

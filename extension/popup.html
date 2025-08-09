@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ProfAI Assistant</title>
+  <style>
+    body {
+      width: 360px;
+      height: 500px;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      overflow-x: hidden;
+    }
+
+    .header {
+      padding: 20px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+    }
+
+    .logo {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    .content {
+      padding: 24px 20px;
+    }
+
+    .quick-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .action-btn {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .action-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateY(-1px);
+    }
+
+    .action-btn-icon {
+      margin-right: 12px;
+      font-size: 18px;
+    }
+
+    .action-btn-text {
+      flex: 1;
+    }
+
+    .action-btn-desc {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-top: 2px;
+    }
+
+    .stats {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .stats-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      opacity: 0.8;
+      margin-top: 2px;
+    }
+
+    .footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px 20px;
+      background: rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    .footer-link {
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      font-size: 12px;
+    }
+
+    .footer-link:hover {
+      color: white;
+    }
+
+    .version {
+      font-size: 10px;
+      opacity: 0.6;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top: 2px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">🧠</div>
+    <div class="title">ProfAI</div>
+    <div class="subtitle">Your AI Learning Companion</div>
+  </div>
+
+  <div class="content" id="content">
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <div>Loading...</div>
+    </div>
+
+    <div id="main-content" style="display: none;">
+      <div class="quick-actions">
+        <button class="action-btn" id="open-chat">
+          <span class="action-btn-icon">💬</span>
+          <div class="action-btn-text">
+            <div>Open ProfAI Chat</div>
+            <div class="action-btn-desc">Start learning session</div>
+          </div>
+        </button>
+
+        <button class="action-btn" id="explain-page">
+          <span class="action-btn-icon">📖</span>
+          <div class="action-btn-text">
+            <div>Analyze This Page</div>
+            <div class="action-btn-desc">Find learning opportunities</div>
+          </div>
+        </button>
+
+        <button class="action-btn" id="settings">
+          <span class="action-btn-icon">⚙️</span>
+          <div class="action-btn-text">
+            <div>Settings</div>
+            <div class="action-btn-desc">Customize preferences</div>
+          </div>
+        </button>
+      </div>
+
+      <div class="stats">
+        <div class="stats-title">📊 Learning Stats</div>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-number" id="total-explanations">-</div>
+            <div class="stat-label">Explanations</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number" id="concepts-learned">-</div>
+            <div class="stat-label">Concepts</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-links">
+      <a href="#" class="footer-link" id="dashboard-link">Dashboard</a>
+      <a href="#" class="footer-link" id="help-link">Help</a>
+    </div>
+    <div class="version">v1.0.0</div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
