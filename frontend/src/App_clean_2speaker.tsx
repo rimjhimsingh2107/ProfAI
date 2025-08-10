@@ -1,6 +1,78 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './index.css';
 
+// Sentiment Analysis Functions
+interface SentimentScoreResult {
+  score: number;
+  matchedKeywords: string[];
+  level: string;
+}
+
+const negativeKeywords = [
+  "confused", "uncertain", "doubt", "puzzled", "don't understand", "unclear", "lost", 
+  "difficult", "hard", "complicated", "frustrated", "upset", "annoyed"
+];
+
+const positiveKeywords = [
+  "understand", "clear", "got it", "comprehend", "realize", "grasp", "aware", 
+  "makes sense", "crystal clear", "obvious", "great", "awesome", "excellent"
+];
+
+function calculateSentimentScore(text: string): SentimentScoreResult {
+  const textLower = text.toLowerCase();
+  let score = 0;
+  let matchedKeywords: string[] = [];
+
+  for (const keyword of positiveKeywords) {
+    if (textLower.includes(keyword)) {
+      score += 0.1;
+      matchedKeywords.push(keyword);
+    }
+  }
+
+  for (const keyword of negativeKeywords) {
+    if (textLower.includes(keyword)) {
+      score -= 0.1;
+      matchedKeywords.push(keyword);
+    }
+  }
+
+  if (score > 1) score = 1;
+  if (score < -1) score = -1;
+
+  let level = "";
+  if (score > 0.5) {
+    level = "excellent_understanding";
+  } else if (score > 0 && score <= 0.5) {
+    level = "good_understanding"; 
+  } else if (score === 0) {
+    level = "neutral";
+  } else if (score >= -0.5 && score < 0) {
+    level = "some_confusion";
+  } else {
+    level = "significant_confusion";
+  }
+
+  return { score, matchedKeywords, level };
+}
+
+function generateAdaptivePrompt(sentimentLevel: string): string {
+  switch (sentimentLevel) {
+    case "excellent_understanding":
+      return "The user understands well. Brief follow-up with advanced concepts.";
+    case "good_understanding": 
+      return "User grasps concept. Provide additional context and examples.";
+    case "neutral":
+      return "Provide clear, engaging explanation with examples.";
+    case "some_confusion":
+      return "User has confusion. Use simpler terms and more analogies.";
+    case "significant_confusion":
+      return "User is confused. Start with basics, use simple language.";
+    default:
+      return "Provide clear explanation.";
+  }
+}
+
 function App() {
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -142,32 +214,18 @@ function App() {
     try {
       const endpoint = conversationMode === 'podcast' ? '/api/podcast' : '/api/chat';
       
+      // Analyze sentiment of user input for adaptive responses
+      const sentimentResult = calculateSentimentScore(text);
+      const adaptivePrompt = generateAdaptivePrompt(sentimentResult.level);
+      
       const requestBody = conversationMode === 'podcast' ? {
         message: text,
         conversationHistory: conversation.slice(-4)
       } : {
         message: text,
-        learningProfile: {
-          preferredLearningStyle: 'conversational',
-          preferredExplanationDepth: 'intermediate',
-          preferredPace: 'natural'
-        },
-        conversationHistory: conversation.slice(-4),
-        systemPrompt: `You are ProfAI, a knowledgeable and approachable AI educator. 
-
-Guidelines for your responses:
-- Speak as if you're talking to a colleague or friend - natural, warm, and conversational
-- Use natural speech patterns: "Well, that's a great question..." "You know what's interesting..." "Here's the thing..."
-- Keep responses conversational length (30-45 seconds when spoken aloud)
-- Use relatable analogies and examples from everyday life
-- Show genuine enthusiasm for the topic without being overly excited
-- Ask thoughtful follow-up questions to keep the conversation flowing
-- Explain complex topics in an accessible way without being condescending
-- Use occasional verbal connectors: "So", "Now", "Actually", "The thing is"
-- Vary sentence structure and length for natural flow
-- Be helpful with any topic, not just AI/ML - you're knowledgeable about many subjects
-
-Remember: This is a voice conversation, so write for spoken delivery, not formal writing.`
+        sentimentLevel: sentimentResult.level,
+        adaptivePrompt: adaptivePrompt,
+        conversationHistory: conversation.slice(-2) // Reduced to prevent token overflow
       };
 
       const response = await fetch(`http://localhost:5001${endpoint}`, {

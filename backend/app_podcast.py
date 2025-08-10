@@ -75,7 +75,7 @@ PODCAST SETUP:
 CONVERSATION STYLE in {language_name}:
 - Natural, flowing conversation like a real podcast between two colleagues
 - {"Each speaker has 1-2 turns (15-30 words each) - keep it concise" if is_followup else "Each speaker has 2-4 turns (25-50 words each)"}
-- Include natural speech: "Well...", "Actually...", "That's interesting...", "You know what..."
+- Include natural speech: "Well...", "Actually...", "That's interesting...", "You know what...", "Uhhh...", "Right...", "Exactly..."
 - Build on each other's points naturally
 - Ask follow-up questions and show genuine curiosity
 - Use relatable analogies and examples
@@ -239,54 +239,45 @@ def create_podcast():
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
-    """Regular multilingual single-response chat endpoint"""
+    """Regular multilingual single-response chat endpoint with adaptive prompts"""
     try:
         data = request.get_json() or {}
         message = data.get('message', '')
-        learning_profile = data.get('learningProfile', {})
+        sentiment_level = data.get('sentimentLevel', 'neutral')
+        adaptive_prompt = data.get('adaptivePrompt', 'Provide a clear, engaging explanation.')
         conversation_history = data.get('conversationHistory', [])
-        custom_prompt = data.get('systemPrompt', '')
         language = data.get('language', 'en-US')
         language_name = data.get('languageName', 'English')
         
         if not message:
             return jsonify({'error': 'No message provided'}), 400
         
-        logger.info(f"Processing {language_name} chat: {message[:50]}...")
+        logger.info(f"Processing {language_name} chat (sentiment: {sentiment_level}): {message[:50]}...")
         
-        # Create multilingual personalized prompt
-        if custom_prompt:
-            system_prompt = custom_prompt
-        else:
-            system_prompt = f"""You are ProfAI, a knowledgeable and multilingual AI educator. Respond entirely in {language_name}.
+        # Create adaptive system prompt based on sentiment
+        system_prompt = f"""You are ProfAI, a knowledgeable and empathetic AI educator. Respond entirely in {language_name}.
 
-IMPORTANT: Respond only in {language_name}. Do not use any other language.
+ADAPTIVE INSTRUCTION: {adaptive_prompt}
 
-Teaching Style: Adapt to {learning_profile.get('preferredLearningStyle', 'conversational')} learning style.
-Explanation Level: {learning_profile.get('preferredExplanationDepth', 'intermediate')}
-Pace: {learning_profile.get('preferredPace', 'natural')}
+Core Guidelines:
+- Speak naturally as if talking to a friend
+- Keep responses conversational (20-30 seconds when spoken)
+- Use appropriate analogies and examples
+- Be warm, patient, and encouraging
+- Ask thoughtful follow-up questions
 
-Guidelines for responses in {language_name}:
-- Speak naturally as if talking to a colleague or friend
-- Use natural speech patterns appropriate for {language_name}
-- Keep responses conversational (30-45 seconds when spoken)
-- Use culturally relevant analogies and examples
-- Show enthusiasm appropriate for the culture
-- Ask follow-up questions to keep conversation flowing
-- Explain topics accessibly without being condescending
-- Use appropriate connectors and expressions for {language_name}
-
-Be enthusiastic, patient, and engaging. Make learning fun and accessible in {language_name}!"""
+Respond entirely in {language_name}."""
 
         # Prepare messages for OpenAI
         messages = [{'role': 'system', 'content': system_prompt}]
         
-        # Add recent conversation history
-        for msg in conversation_history[-6:]:
-            messages.append({
-                'role': msg['role'],
-                'content': msg['content']
-            })
+        # Add recent conversation history (reduced to prevent token overflow)
+        for msg in conversation_history[-2:]:  # Only last 2 messages instead of 6
+            if msg.get('role') and msg.get('content'):
+                messages.append({
+                    'role': msg['role'],
+                    'content': msg['content']
+                })
         
         # Add current user message
         messages.append({'role': 'user', 'content': message})
