@@ -61,7 +61,9 @@ def generate_audio_with_openai(text, voice_id):
 def generate_podcast_script(topic, conversation_history, language='en-US', language_name='English'):
     """Generate a multilingual multi-speaker podcast script about the topic"""
     
-    script_length = "medium" # 2-3 exchanges per speaker
+    # Make follow-ups shorter and more focused
+    is_followup = len(conversation_history) > 0
+    script_length = "short" if is_followup else "medium"  # Shorter for follow-ups
     
     prompt = f"""You are creating a script for an engaging educational podcast in {language_name}. Respond entirely in {language_name}.
 
@@ -72,7 +74,7 @@ PODCAST SETUP:
 
 CONVERSATION STYLE in {language_name}:
 - Natural, flowing conversation like a real podcast between two colleagues
-- Each speaker has 2-4 turns (25-50 words each)
+- {"Each speaker has 1-2 turns (15-30 words each) - keep it concise" if is_followup else "Each speaker has 2-4 turns (25-50 words each)"}
 - Include natural speech: "Well...", "Actually...", "That's interesting...", "You know what..."
 - Build on each other's points naturally
 - Ask follow-up questions and show genuine curiosity
