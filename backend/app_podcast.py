@@ -32,7 +32,7 @@ PODCAST_VOICES = {
         'personality': 'warm, analytical, excellent at breaking down complex concepts'
     },
     'marcus': {
-        'voice_id': 'alloy',  # OpenAI's alloy voice - neutral, balanced
+        'voice_id': 'echo',  # OpenAI's echo voice - male voice
         'name': 'Marcus',
         'style': 'Tech journalist and industry expert',
         'personality': 'engaging, practical, asks great questions and connects theory to real-world'

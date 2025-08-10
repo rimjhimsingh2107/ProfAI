@@ -181,6 +181,8 @@ Remember: This is a voice conversation, so write for spoken delivery, not formal
       const data = await response.json();
       
       if (data.type === 'podcast') {
+        console.log('Podcast response received:', data); // Debug log
+        console.log('Segments:', data.segments); // Debug log
         const podcastMessage = {
           id: Date.now() + 1,
           role: 'podcast',
@@ -195,7 +197,11 @@ Remember: This is a voice conversation, so write for spoken delivery, not formal
         setCurrentSegment(0);
         setIsSpeaking(true);
         
-        playPodcastSegment(data.segments, 0);
+        // Start playing immediately, don't wait for state update
+        setTimeout(() => {
+          playPodcastSegmentForced(data.segments, 0);
+        }, 100);
+        console.log('Starting podcast playback with segments:', data.segments.length); // Debug log
         
       } else {
         const assistantMessage = {
@@ -257,7 +263,65 @@ Remember: This is a voice conversation, so write for spoken delivery, not formal
     }
   };
 
+  const playPodcastSegmentForced = async (segments, segmentIndex) => {
+    console.log('playPodcastSegmentForced called:', { segmentIndex, segmentsLength: segments?.length }); // Debug log
+    
+    if (!segments || segmentIndex >= segments.length) {
+      setIsSpeaking(false);
+      setCurrentSegment(0);
+      setPlayingPodcast(null);
+      return;
+    }
+
+    const segment = segments[segmentIndex];
+    console.log('Playing segment:', segment.speaker, 'has audio:', !!segment.audio_data); // Debug log
+    setCurrentSegment(segmentIndex);
+
+    if (segment.audio_data) {
+      try {
+        const audioData = new Uint8Array(segment.audio_data.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+        const audioBlob = new Blob([audioData], { type: 'audio/mpeg' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        const audio = new Audio(audioUrl);
+        audioPlayerRef.current = audio;
+        
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+          audioPlayerRef.current = null;
+          setTimeout(() => {
+            playPodcastSegmentForced(segments, segmentIndex + 1);
+          }, 800);
+        };
+        
+        audio.onerror = () => {
+          console.log('Audio error, falling back to TTS for:', segment.speaker);
+          speakSegmentWithTTS(segment, () => {
+            setTimeout(() => {
+              playPodcastSegmentForced(segments, segmentIndex + 1);
+            }, 800);
+          });
+        };
+        
+        console.log('Playing audio for:', segment.speaker);
+        await audio.play();
+        return;
+        
+      } catch (error) {
+        console.error('Error playing OpenAI audio:', error);
+      }
+    }
+
+    speakSegmentWithTTS(segment, () => {
+      setTimeout(() => {
+        playPodcastSegmentForced(segments, segmentIndex + 1);
+      }, 800);
+    });
+  };
+
   const playPodcastSegment = async (segments, segmentIndex) => {
+    console.log('playPodcastSegment called:', { segmentIndex, segmentsLength: segments?.length, isSpeaking }); // Debug log
+    
     if (!isSpeaking || !segments || segmentIndex >= segments.length) {
       setIsSpeaking(false);
       setCurrentSegment(0);
@@ -266,6 +330,7 @@ Remember: This is a voice conversation, so write for spoken delivery, not formal
     }
 
     const segment = segments[segmentIndex];
+    console.log('Playing segment:', segment.speaker, 'has audio:', !!segment.audio_data); // Debug log
     setCurrentSegment(segmentIndex);
 
     if (segment.audio_data) {
