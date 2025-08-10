@@ -1,6 +1,36 @@
+# Environment variables - NEVER commit these files
 .env
+.env.local
+.env.production
+.env.development
+*.env
 
-.env
-.env*
+# Backend environment files
 backend/.env
 backend/.env*
+backend/.env.local
+backend/.env.production
+
+# Frontend environment files  
+frontend/.env
+frontend/.env*
+frontend/.env.local
+frontend/.env.production
+
+# Node modules
+node_modules/
+frontend/node_modules/
+
+# Python virtual environment
+backend/venv/
+backend/__pycache__/
+backend/*.pyc
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
