@@ -20,9 +20,8 @@ CORS(app, origins=['http://localhost:3000', 'http://localhost:3001'])
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize OpenAI and ElevenLabs
+# Initialize OpenAI and configure logging
 openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
-ELEVENLABS_API_KEY = os.getenv('ELEVENLABS_API_KEY')
 
 # OpenAI voice IDs for podcast personas  
 PODCAST_VOICES = {
@@ -136,45 +135,6 @@ Create an engaging {script_length} conversation (6-9 total exchanges) entirely i
             ],
             "topic_summary": f"Discussion about {topic}"
         }
-
-def generate_audio_with_elevenlabs(text, voice_id, output_format="mp3_44100_128"):
-    """Generate audio using ElevenLabs API"""
-    
-    if not ELEVENLABS_API_KEY:
-        logger.warning("ElevenLabs API key not found")
-        return None
-    
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
-    
-    headers = {
-        "Accept": "audio/mpeg",
-        "Content-Type": "application/json",
-        "xi-api-key": ELEVENLABS_API_KEY
-    }
-    
-    data = {
-        "text": text,
-        "model_id": "eleven_monolingual_v1",
-        "voice_settings": {
-            "stability": 0.6,
-            "similarity_boost": 0.7,
-            "style": 0.8,
-            "use_speaker_boost": True
-        }
-    }
-    
-    try:
-        response = requests.post(url, json=data, headers=headers, timeout=30)
-        
-        if response.status_code == 200:
-            return response.content
-        else:
-            logger.error(f"ElevenLabs API error: {response.status_code} - {response.text}")
-            return None
-            
-    except Exception as e:
-        logger.error(f"Error calling ElevenLabs API: {e}")
-        return None
 
 @app.route('/', methods=['GET'])
 def home():
@@ -374,5 +334,4 @@ if __name__ == '__main__':
     port = int(os.getenv('PORT', 5001))
     debug = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
     print(f"🎙️ ProfAI Podcast Backend starting on http://localhost:{port}")
-    print(f"📊 ElevenLabs: {'✅ Enabled' if ELEVENLABS_API_KEY else '❌ Disabled (add ELEVENLABS_API_KEY)'}")
     app.run(host='0.0.0.0', port=port, debug=debug)
