@@ -85,6 +85,13 @@ function App() {
   const [playingPodcast, setPlayingPodcast] = useState(null);
   const [conversationMode, setConversationMode] = useState('single');
   
+  // Quiz System State
+  const [questionCount, setQuestionCount] = useState(0);
+  const [showQuizPrompt, setShowQuizPrompt] = useState(false);
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [currentQuiz, setCurrentQuiz] = useState(null);
+  const [userResponses, setUserResponses] = useState([]);
+  
   const recognitionRef = useRef(null);
   const synthRef = useRef(window.speechSynthesis);
   const audioContextRef = useRef(null);
@@ -201,6 +208,19 @@ function App() {
       setTextInput('');
     }
     
+    if (conversationMode === 'single') {
+      setUserResponses(prev => [...prev.slice(-4), text]);
+      
+      const newCount = questionCount + 1;
+      setQuestionCount(newCount);
+      
+      if (newCount % 5 === 0) {
+        setShowQuizPrompt(true);
+        setIsProcessing(false);
+        return;
+      }
+    }
+    
     const userMessage = {
       id: Date.now(),
       role: 'user',
@@ -225,7 +245,7 @@ function App() {
         message: text,
         sentimentLevel: sentimentResult.level,
         adaptivePrompt: adaptivePrompt,
-        conversationHistory: conversation.slice(-2) // Reduced to prevent token overflow
+        conversationHistory: conversation.slice(-2)
       };
 
       const response = await fetch(`http://localhost:5001${endpoint}`, {
@@ -239,8 +259,6 @@ function App() {
       const data = await response.json();
       
       if (data.type === 'podcast') {
-        console.log('Podcast response received:', data); // Debug log
-        console.log('Segments:', data.segments); // Debug log
         const podcastMessage = {
           id: Date.now() + 1,
           role: 'podcast',
@@ -259,7 +277,6 @@ function App() {
         setTimeout(() => {
           playPodcastSegmentForced(data.segments, 0);
         }, 100);
-        console.log('Starting podcast playback with segments:', data.segments.length); // Debug log
         
       } else {
         const assistantMessage = {
@@ -322,8 +339,6 @@ function App() {
   };
 
   const playPodcastSegmentForced = async (segments, segmentIndex) => {
-    console.log('playPodcastSegmentForced called:', { segmentIndex, segmentsLength: segments?.length }); // Debug log
-    
     if (!segments || segmentIndex >= segments.length) {
       setIsSpeaking(false);
       setCurrentSegment(0);
@@ -332,7 +347,6 @@ function App() {
     }
 
     const segment = segments[segmentIndex];
-    console.log('Playing segment:', segment.speaker, 'has audio:', !!segment.audio_data); // Debug log
     setCurrentSegment(segmentIndex);
 
     if (segment.audio_data) {
@@ -353,7 +367,6 @@ function App() {
         };
         
         audio.onerror = () => {
-          console.log('Audio error, falling back to TTS for:', segment.speaker);
           speakSegmentWithTTS(segment, () => {
             setTimeout(() => {
               playPodcastSegmentForced(segments, segmentIndex + 1);
@@ -361,7 +374,6 @@ function App() {
           });
         };
         
-        console.log('Playing audio for:', segment.speaker);
         await audio.play();
         return;
         
@@ -378,8 +390,6 @@ function App() {
   };
 
   const playPodcastSegment = async (segments, segmentIndex) => {
-    console.log('playPodcastSegment called:', { segmentIndex, segmentsLength: segments?.length, isSpeaking }); // Debug log
-    
     if (!isSpeaking || !segments || segmentIndex >= segments.length) {
       setIsSpeaking(false);
       setCurrentSegment(0);
@@ -388,7 +398,6 @@ function App() {
     }
 
     const segment = segments[segmentIndex];
-    console.log('Playing segment:', segment.speaker, 'has audio:', !!segment.audio_data); // Debug log
     setCurrentSegment(segmentIndex);
 
     if (segment.audio_data) {
@@ -492,6 +501,58 @@ function App() {
     synthRef.current.speak(utterance);
   };
 
+  const handleQuizAccept = async () => {
+    setShowQuizPrompt(false);
+    setIsProcessing(true);
+    
+    try {
+      // Generate quiz based on user responses
+      const response = await fetch('http://localhost:5001/api/generate-quiz', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userResponses: userResponses,
+          recentConversation: conversation.slice(-8)
+        })
+      });
+      
+      const quizData = await response.json();
+      setCurrentQuiz(quizData);
+      setShowQuiz(true);
+      
+    } catch (error) {
+      console.error('Error generating quiz:', error);
+    }
+    
+    setIsProcessing(false);
+  };
+
+  const handleQuizDecline = () => {
+    setShowQuizPrompt(false);
+    setQuestionCount(0); // Reset counter
+  };
+
+  const handleQuizAnswer = async (selectedAnswer) => {
+    const isCorrect = selectedAnswer === currentQuiz.correctAnswer;
+    
+    // Update quiz with result
+    setCurrentQuiz(prev => ({
+      ...prev,
+      userAnswer: selectedAnswer,
+      isCorrect: isCorrect,
+      showResult: true
+    }));
+    
+    // Auto-close after 3 seconds
+    setTimeout(() => {
+      setShowQuiz(false);
+      setCurrentQuiz(null);
+      setQuestionCount(0); // Reset counter
+    }, 3000);
+  };
+
   const handleVoiceInput = (text) => handleInput(text, true);
 
   const handleTextSubmit = (e) => {
@@ -573,6 +634,69 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 text-white">
+      {/* Quiz Prompt Modal */}
+      {showQuizPrompt && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-2xl p-8 max-w-md mx-4 border border-gray-700">
+            <h3 className="text-xl font-semibold mb-4 text-center">Ready for a Quiz?</h3>
+            <p className="text-gray-300 mb-6 text-center">
+              You've asked 4 great questions! Would you like to test your understanding with a quick quiz?
+            </p>
+            <div className="flex space-x-4">
+              <button
+                onClick={handleQuizAccept}
+                disabled={isProcessing}
+                className="flex-1 bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
+              >
+                {isProcessing ? 'Generating...' : 'Yes, Quiz Me!'}
+              </button>
+              <button
+                onClick={handleQuizDecline}
+                className="flex-1 bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-medium transition-colors"
+              >
+                Maybe Later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quiz Modal */}
+      {showQuiz && currentQuiz && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-2xl p-8 max-w-lg mx-4 border border-gray-700">
+            {!currentQuiz.showResult ? (
+              <>
+                <h3 className="text-xl font-semibold mb-4">Quick Quiz</h3>
+                <p className="text-gray-300 mb-6">{currentQuiz.question}</p>
+                <div className="space-y-3">
+                  {currentQuiz.options.map((option, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleQuizAnswer(index)}
+                      className="w-full text-left p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors border border-gray-600"
+                    >
+                      <span className="font-medium text-blue-400">{String.fromCharCode(65 + index)}.</span> {option}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-center">
+                <div className={`text-4xl mb-4 ${currentQuiz.isCorrect ? 'text-green-400' : 'text-red-400'}`}>
+                  {currentQuiz.isCorrect ? '✅' : '❌'}
+                </div>
+                <h3 className={`text-xl font-semibold mb-2 ${currentQuiz.isCorrect ? 'text-green-400' : 'text-red-400'}`}>
+                  {currentQuiz.isCorrect ? 'Correct!' : 'Not quite right'}
+                </h3>
+                <p className="text-gray-300 mb-4">{currentQuiz.explanation}</p>
+                <p className="text-sm text-gray-400">Closing in a moment...</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Professional Header */}
       <div className="border-b border-gray-700/50 bg-black/20 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-6 py-4">

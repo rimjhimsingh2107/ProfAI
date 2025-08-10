@@ -9,14 +9,14 @@ from datetime import datetime
 import requests
 import io
 
-# Load environment variables
+
 load_dotenv()
 
-# Initialize Flask app
+
 app = Flask(__name__)
 CORS(app, origins=['http://localhost:3000', 'http://localhost:3001'])
 
-# Configure logging
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -294,15 +294,13 @@ Respond entirely in {language_name}."""
         
         ai_response = response.choices[0].message.content
         
-        # Generate audio using OpenAI TTS for natural voice
         audio_data = None
         try:
             audio_data = generate_audio_with_openai(
                 ai_response, 
-                'nova'  # Using nova voice for ProfAI (warm, engaging female voice)
+                'nova'
             )
             if audio_data:
-                # Convert audio data to hex string for frontend
                 audio_hex = audio_data.hex()
                 logger.info(f"Generated audio for ProfAI using OpenAI voice nova")
             else:
@@ -339,6 +337,67 @@ Respond entirely in {language_name}."""
         
     except Exception as e:
         logger.error(f"Chat endpoint error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/generate-quiz', methods=['POST'])
+def generate_quiz():
+    """Generate a quiz question based on user's recent responses"""
+    try:
+        data = request.get_json() or {}
+        user_responses = data.get('userResponses', [])
+        recent_conversation = data.get('recentConversation', [])
+        
+        # Extract topics from user responses
+        topics_context = ' '.join(user_responses[-3:])  # Last 3 responses
+        
+        quiz_prompt = f"""Based on the user's recent questions and responses about: "{topics_context}"
+
+Create a multiple-choice quiz question to test their understanding. 
+
+FORMAT YOUR RESPONSE AS JSON:
+{{
+  "question": "Clear, specific question about the topic discussed",
+  "options": ["Option A", "Option B", "Option C", "Option D"],
+  "correctAnswer": 0,
+  "explanation": "Brief explanation of why this answer is correct"
+}}
+
+Make the question:
+- Relevant to what they've been learning
+- Not too easy or too hard
+- Test practical understanding, not just memorization
+- Include one clearly correct answer and three plausible distractors"""
+        
+        response = openai_client.chat.completions.create(
+            model='gpt-4o',
+            messages=[
+                {'role': 'system', 'content': quiz_prompt},
+                {'role': 'user', 'content': f'Generate a quiz question about: {topics_context}'}
+            ],
+            temperature=0.7,
+            max_tokens=500
+        )
+        
+        quiz_response = response.choices[0].message.content
+        logger.info(f"Raw quiz response: {quiz_response[:100]}...")
+        
+        try:
+            quiz_data = json.loads(quiz_response)
+        except json.JSONDecodeError:
+            # Fallback if JSON parsing fails
+            quiz_data = {
+                "question": "What is the main concept we've been discussing?",
+                "options": ["Option A", "Option B", "Option C", "Option D"],
+                "correctAnswer": 0,
+                "explanation": "Based on our conversation about the topic."
+            }
+        
+        logger.info(f"Generated quiz question about: {topics_context[:50]}...")
+        
+        return jsonify(quiz_data)
+        
+    except Exception as e:
+        logger.error(f"Quiz generation error: {e}")
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
