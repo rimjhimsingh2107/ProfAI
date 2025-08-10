@@ -301,6 +301,23 @@ Be enthusiastic, patient, and engaging. Make learning fun and accessible in {lan
         
         ai_response = response.choices[0].message.content
         
+        # Generate audio using OpenAI TTS for natural voice
+        audio_data = None
+        try:
+            audio_data = generate_audio_with_openai(
+                ai_response, 
+                'nova'  # Using nova voice for ProfAI (warm, engaging female voice)
+            )
+            if audio_data:
+                # Convert audio data to hex string for frontend
+                audio_hex = audio_data.hex()
+                logger.info(f"Generated audio for ProfAI using OpenAI voice nova")
+            else:
+                audio_hex = None
+        except Exception as e:
+            logger.error(f"OpenAI TTS failed for ProfAI: {e}")
+            audio_hex = None
+        
         # Mock analysis for now
         emotional_tone = {
             'sentiment': 'positive',
@@ -321,6 +338,7 @@ Be enthusiastic, patient, and engaging. Make learning fun and accessible in {lan
             'response': ai_response,
             'language': language,
             'language_name': language_name,
+            'audioData': audio_hex,  # Now includes OpenAI audio data
             'audioUrl': None,
             'emotionalTone': emotional_tone,
             'learningMetrics': learning_metrics
