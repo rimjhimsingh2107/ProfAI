@@ -244,34 +244,6 @@ ProfAI adapts to your learning style:
 - Difficulty progression
 - Personalized recommendations
 
-## 🚀 Deployment
-
-### Frontend (Vercel)
-```bash
-cd frontend
-npm run build
-vercel --prod
-```
-
-### Backend (Heroku/Railway)
-```bash
-cd backend
-# Add Procfile: web: gunicorn app:app
-git push heroku main
-```
-
-### Extension (Chrome Web Store)
-1. Zip the extension folder
-2. Submit to Chrome Web Store
-3. Follow review process
-
-## 🤝 Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-## 📄 License
-
-This project is licensed under the MIT License - see [LICENSE](LICENSE) for details.
 
 ##  Acknowledgments
 
@@ -279,6 +251,6 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) for deta
 - Firebase for backend services
 ---
 
-**Built by 24-bit Code team for Hack-Nation**
+**Built by 24-bit Code team for Hack-Nation's VC Big Bets Challenge**
 
 *Making AI education accessible, personalized, and enjoyable for everyone.*
