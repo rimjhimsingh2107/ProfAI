@@ -1,6 +1,11 @@
+
 # 🧠 ProfAI - Your Personal AI Learning Companion
 
-ProfAI is an emotionally intelligent AI professor that adapts to your learning style and helps you master AI and machine learning concepts. It features a beautiful web application, powerful backend analytics, and a Chrome extension for contextual learning anywhere on the web.
+ProfAI is an emotionally intelligent AI professor that adapts to your learning style and helps you master AI and machine learning concepts. It features a beautiful web application, powerful backend analytics, a Chrome extension for contextual learning anywhere on the web, and immersive podcast-style learning.
+
+**🎥 Live Demo:** https://drive.google.com/file/d/1wivQMEBUIj5wUNbW_pckhxAucRr31l0H/view?usp=sharing
+
+---
 
 ## ✨ Features
 
@@ -10,22 +15,27 @@ ProfAI is an emotionally intelligent AI professor that adapts to your learning s
 - **Progress Tracking**: Monitors your understanding and suggests next topics
 - **Learning Analytics**: Detailed insights into your learning patterns and progress
 
+### 🎙 Podcast Mode
+- **Hosted by Sarah & Marcus**: Friendly AI podcast hosts for a relatable learning experience
+- **Natural Voice Output**: Powered by OpenAI’s TTS API with lifelike voices
+- **Storytelling Approach**: Explains concepts in a conversational and engaging style
+- **Multi-Mode Learning**: Switch seamlessly between podcast mode and chat mode
+
+### 🧪 Active Learning
+- **Strengths & Weakness Adaptation**: Every 4 questions, the app tests you on concepts tailored to your skill profile
+- **Memory Retention Boost**: Reinforces weaker topics while challenging stronger areas
+- **Instant Feedback**: Clear explanations for correct and incorrect answers
+
 ### 💬 Interactive Chat Interface
 - **Voice & Text**: Support for both voice and text-based conversations
 - **Real-time Audio**: Text-to-speech responses for immersive learning
 - **Beautiful UI**: Modern, gradient-based design with glassmorphism effects
 - **Responsive**: Works perfectly on desktop and mobile devices
 
-### 🔧 Chrome Extension
-- **Contextual Help**: Double-click any term for instant explanations
-- **Page Analysis**: Automatically detect AI/ML content and offer learning suggestions
-- **Quick Access**: Right-click menu and keyboard shortcuts
-- **Seamless Integration**: Works on any website without disrupting your workflow
-
 ### 📊 Backend Intelligence
-- **Learning Profile Analysis**: ML-powered analysis of conversation patterns
-- **Emotional Tone Detection**: Understands your emotional state from text and voice
-- **Personalized Prompts**: Dynamic prompt generation based on your profile
+- **Sentiment Analysis for Understanding Prediction**: Calculates sentiment score by analyzing text and voice to gauge comprehension and adjust future explanations.
+- **Learning Profile Analysis**: ML-powered tracking of strengths, weaknesses, and topic mastery
+- **Personalized Prompts**: Dynamic prompt generation based on user profile
 - **Firebase Integration**: Secure user data and progress synchronization
 
 ## 🚀 Quick Start
@@ -88,27 +98,6 @@ npm start
 
 # The app will open at http://localhost:3000
 ```
-
-### 4. Install Chrome Extension
-
-1. Open Chrome and go to `chrome://extensions/`
-2. Enable "Developer mode"
-3. Click "Load unpacked" and select the `extension` folder
-4. The ProfAI extension will appear in your toolbar
-
-## 🎨 UI/UX Features
-
-### Beautiful Design
-- **Gradient Backgrounds**: Purple to pink gradients throughout
-- **Glassmorphism**: Translucent cards with backdrop blur effects
-- **Smooth Animations**: Framer Motion powered transitions
-- **Modern Typography**: Inter font for excellent readability
-
-### Responsive Layout
-- Mobile-first design approach
-- Flexible grid systems
-- Touch-friendly interactive elements
-- Optimized for all screen sizes
 
 ## 🧠 AI Features
 
@@ -186,15 +175,15 @@ profile = {
 │ • Chat UI       │    │ • Analytics     │    │ • Embeddings    │
 │ • Dashboard     │    │ • ML models     │    │ • Completions   │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
-         ▲                       ▲
-         │                       │
-┌─────────────────┐    ┌─────────────────┐
-│ Chrome Extension│    │   Firebase      │
-│                 │    │                 │
-│ • Context help  │    │ • Authentication│
-│ • Page analysis │    │ • User data     │
-│ • Quick actions │    │ • Real-time DB  │
-└─────────────────┘    └─────────────────┘
+                                 ▲
+                                 │
+                       ┌─────────────────┐
+                       │   Firebase      │
+                       │                 │
+                       │ • Authentication│
+                       │ • User data     │
+                       │ • Real-time DB  │
+                       └─────────────────┘
 ```
 
 ## 🎯 Learning Personalization
@@ -281,15 +270,12 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 
 This project is licensed under the MIT License - see [LICENSE](LICENSE) for details.
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - OpenAI for GPT-4 API
 - Firebase for backend services
-- The open-source community for amazing tools
-- All beta testers and contributors
-
 ---
 
-**Built with ❤️ by the ProfAI Team**
+**Built by 24-bit Code team for Hack-Nation**
 
 *Making AI education accessible, personalized, and enjoyable for everyone.*
