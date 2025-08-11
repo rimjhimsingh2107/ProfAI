@@ -1,9 +1,12 @@
 
 # 🧠 ProfAI - Your Personal AI Learning Companion
 
-ProfAI is an emotionally intelligent AI professor that adapts to your learning style and helps you master AI and machine learning concepts. It features a beautiful web application, powerful backend analytics, a Chrome extension for contextual learning anywhere on the web, and immersive podcast-style learning.
+ProfAI is an emotionally intelligent AI professor that adapts to your learning style and helps you master AI and machine learning concepts. It features a beautiful web application, powerful backend analytics, a Chrome extension for contextual learning anywhere on the web, and immersive podcast-style learning. 
+
+🏆 Top 16 in global AI hackathon - Hack-Nation - hosted by MIT Sloan AI Club and sponsored by OpenAI.
 
 **🎥 Live Demo:** https://drive.google.com/file/d/1wivQMEBUIj5wUNbW_pckhxAucRr31l0H/view?usp=sharing
+
 
 ---
 
