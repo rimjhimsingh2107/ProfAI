@@ -1,4 +1,3 @@
-// ProfAI Extension Popup Script
 
 document.addEventListener('DOMContentLoaded', function() {
   initializePopup();
@@ -6,13 +5,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function initializePopup() {
   try {
-    // Load user stats and preferences
     await loadUserStats();
     
-    // Setup event listeners
     setupEventListeners();
     
-    // Show main content
     document.getElementById('loading').style.display = 'none';
     document.getElementById('main-content').style.display = 'block';
     
@@ -23,13 +19,11 @@ async function initializePopup() {
 }
 
 function setupEventListeners() {
-  // Open chat button
   document.getElementById('open-chat').addEventListener('click', () => {
     chrome.tabs.create({ url: 'http://localhost:3000/chat' });
     window.close();
   });
   
-  // Analyze page button
   document.getElementById('explain-page').addEventListener('click', async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     
@@ -40,20 +34,17 @@ function setupEventListeners() {
     window.close();
   });
   
-  // Settings button
   document.getElementById('settings').addEventListener('click', () => {
     chrome.tabs.create({ url: 'http://localhost:3000/dashboard' });
     window.close();
   });
   
-  // Dashboard link
   document.getElementById('dashboard-link').addEventListener('click', (e) => {
     e.preventDefault();
     chrome.tabs.create({ url: 'http://localhost:3000/dashboard' });
     window.close();
   });
   
-  // Help link
   document.getElementById('help-link').addEventListener('click', (e) => {
     e.preventDefault();
     showHelp();
@@ -62,11 +53,9 @@ function setupEventListeners() {
 
 async function loadUserStats() {
   try {
-    // Get stats from storage
     const result = await chrome.storage.sync.get(['userStats', 'userProfile']);
     const stats = result.userStats || { totalExplanations: 0, conceptsLearned: 0 };
     
-    // Update UI
     document.getElementById('total-explanations').textContent = stats.totalExplanations || 0;
     document.getElementById('concepts-learned').textContent = stats.conceptsLearned || 0;
     
@@ -135,14 +124,12 @@ function goBack() {
   location.reload();
 }
 
-// Listen for messages from background script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'updateStats') {
     loadUserStats();
   }
 });
 
-// Track usage statistics
 function trackUsage(action) {
   chrome.storage.sync.get(['userStats'], (result) => {
     const stats = result.userStats || { totalExplanations: 0, conceptsLearned: 0, lastUsed: null };
@@ -159,5 +146,4 @@ function trackUsage(action) {
   });
 }
 
-// Export for use in other parts of extension
 window.trackUsage = trackUsage;

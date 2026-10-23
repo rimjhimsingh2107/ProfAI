@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
@@ -6,12 +6,9 @@ from openai import OpenAI
 import json
 import logging
 from datetime import datetime
-import requests
-import io
 
 
 load_dotenv()
-
 
 app = Flask(__name__)
 CORS(app, origins=['http://localhost:3000', 'http://localhost:3001', 'https://profai-frontend.onrender.com'])
@@ -20,19 +17,18 @@ CORS(app, origins=['http://localhost:3000', 'http://localhost:3001', 'https://pr
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize OpenAI and configure logging
 openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
-# OpenAI voice IDs for podcast personas  
+# two hosts for podcast mode, each mapped to an OpenAI TTS voice
 PODCAST_VOICES = {
     'sarah': {
-        'voice_id': 'shimmer',  # OpenAI's shimmer voice - bright, energetic female
+        'voice_id': 'shimmer',
         'name': 'Sarah',
         'style': 'AI researcher and educator',
         'personality': 'warm, analytical, excellent at breaking down complex concepts'
     },
     'marcus': {
-        'voice_id': 'echo',  # OpenAI's echo voice - male voice
+        'voice_id': 'echo',
         'name': 'Marcus',
         'style': 'Tech journalist and industry expert',
         'personality': 'engaging, practical, asks great questions and connects theory to real-world'
@@ -40,18 +36,15 @@ PODCAST_VOICES = {
 }
 
 def generate_audio_with_openai(text, voice_id):
-    """Generate audio using OpenAI's TTS API"""
-    
     try:
         response = openai_client.audio.speech.create(
-            model="tts-1-hd",  # Higher quality model
+            model="tts-1-hd",
             voice=voice_id,
             input=text,
             response_format="mp3",
             speed=1.0
         )
-        
-        # Return audio data as bytes
+
         return response.content
         
     except Exception as e:
@@ -59,11 +52,9 @@ def generate_audio_with_openai(text, voice_id):
         return None
 
 def generate_podcast_script(topic, conversation_history, language='en-US', language_name='English'):
-    """Generate a multilingual multi-speaker podcast script about the topic"""
-    
-    # Make follow-ups shorter and more focused
+    # follow-up questions get a shorter back-and-forth
     is_followup = len(conversation_history) > 0
-    script_length = "short" if is_followup else "medium"  # Shorter for follow-ups
+    script_length = "short" if is_followup else "medium"
     
     prompt = f"""You are creating a script for an engaging educational podcast in {language_name}. Respond entirely in {language_name}.
 
@@ -112,13 +103,11 @@ Create an engaging {script_length} conversation (6-9 total exchanges) entirely i
         )
         
         script_text = response.choices[0].message.content
-        
-        # Parse JSON response
+
         try:
             script_data = json.loads(script_text)
             return script_data
         except json.JSONDecodeError:
-            # Fallback if JSON parsing fails
             logger.warning("Failed to parse JSON from GPT response")
             return {
                 "speakers": [
@@ -140,12 +129,11 @@ Create an engaging {script_length} conversation (6-9 total exchanges) entirely i
 
 @app.route('/', methods=['GET'])
 def home():
-    """Home endpoint"""
     return jsonify({
-        'message': '🎙️ ProfAI Podcast Backend API',
+        'message': 'ProfAI backend',
         'status': 'running',
         'version': '2.0.0',
-        'features': ['Multi-speaker conversations', 'ElevenLabs voice synthesis', 'Podcast-style discussions'],
+        'features': ['chat', 'podcast mode', 'quizzes'],
         'endpoints': {
             'health': '/api/health',
             'chat': '/api/chat (POST)',
@@ -155,19 +143,16 @@ def home():
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
-    """Health check endpoint"""
     return jsonify({
         'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
         'services': {
-            'openai': bool(os.getenv('OPENAI_API_KEY')),
-            'elevenlabs': bool(os.getenv('ELEVENLABS_API_KEY'))
+            'openai': bool(os.getenv('OPENAI_API_KEY'))
         }
     })
 
 @app.route('/api/podcast', methods=['POST'])
 def create_podcast():
-    """Create a multilingual multi-speaker podcast about the topic"""
     try:
         data = request.get_json() or {}
         topic = data.get('message', data.get('topic', ''))
@@ -179,14 +164,12 @@ def create_podcast():
             return jsonify({'error': 'No topic provided'}), 400
         
         logger.info(f"Creating {language_name} podcast about: {topic}")
-        
-        # Generate the multilingual podcast script
+
         script_data = generate_podcast_script(topic, conversation_history, language, language_name)
         
         if not script_data or 'speakers' not in script_data:
             return jsonify({'error': 'Failed to generate podcast script'}), 500
         
-        # Generate audio for each speaker segment
         podcast_segments = []
         full_transcript = []
         
@@ -196,8 +179,7 @@ def create_podcast():
             
             if speaker_name in PODCAST_VOICES:
                 voice_config = PODCAST_VOICES[speaker_name]
-                
-                # Use OpenAI's TTS API for high-quality voices
+
                 audio_data = None
                 try:
                     audio_data = generate_audio_with_openai(
@@ -239,7 +221,6 @@ def create_podcast():
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
-    """Regular multilingual single-response chat endpoint with adaptive prompts"""
     try:
         data = request.get_json() or {}
         message = data.get('message', '')
@@ -254,7 +235,7 @@ def chat():
         
         logger.info(f"Processing {language_name} chat (sentiment: {sentiment_level}): {message[:50]}...")
         
-        # Create adaptive system prompt based on sentiment
+        # adaptive_prompt comes from the frontend's sentiment check
         system_prompt = f"""You are ProfAI, a knowledgeable and empathetic AI educator. Respond entirely in {language_name}.
 
 ADAPTIVE INSTRUCTION: {adaptive_prompt}
@@ -268,21 +249,18 @@ Core Guidelines:
 
 Respond entirely in {language_name}."""
 
-        # Prepare messages for OpenAI
         messages = [{'role': 'system', 'content': system_prompt}]
-        
-        # Add recent conversation history (reduced to prevent token overflow)
-        for msg in conversation_history[-2:]:  # Only last 2 messages instead of 6
+
+        # only the last two messages, to keep the prompt small
+        for msg in conversation_history[-2:]:
             if msg.get('role') and msg.get('content'):
                 messages.append({
                     'role': msg['role'],
                     'content': msg['content']
                 })
-        
-        # Add current user message
+
         messages.append({'role': 'user', 'content': message})
-        
-        # Generate response with OpenAI
+
         response = openai_client.chat.completions.create(
             model='gpt-4o',
             messages=messages,
@@ -302,14 +280,14 @@ Respond entirely in {language_name}."""
             )
             if audio_data:
                 audio_hex = audio_data.hex()
-                logger.info(f"Generated audio for ProfAI using OpenAI voice nova")
+                logger.info("Generated audio for ProfAI using OpenAI voice nova")
             else:
                 audio_hex = None
         except Exception as e:
             logger.error(f"OpenAI TTS failed for ProfAI: {e}")
             audio_hex = None
         
-        # Mock analysis for now
+        # placeholder values until real analysis is added
         emotional_tone = {
             'sentiment': 'positive',
             'confidence': 0.8,
@@ -329,7 +307,7 @@ Respond entirely in {language_name}."""
             'response': ai_response,
             'language': language,
             'language_name': language_name,
-            'audioData': audio_hex,  # Now includes OpenAI audio data
+            'audioData': audio_hex,
             'audioUrl': None,
             'emotionalTone': emotional_tone,
             'learningMetrics': learning_metrics
@@ -341,14 +319,12 @@ Respond entirely in {language_name}."""
 
 @app.route('/api/generate-quiz', methods=['POST'])
 def generate_quiz():
-    """Generate a quiz question based on user's recent responses"""
     try:
         data = request.get_json() or {}
         user_responses = data.get('userResponses', [])
         recent_conversation = data.get('recentConversation', [])
-        
-        # Extract topics from user responses
-        topics_context = ' '.join(user_responses[-3:])  # Last 3 responses
+
+        topics_context = ' '.join(user_responses[-3:])
         
         quiz_prompt = f"""Based on the user's recent questions and responses about: "{topics_context}"
 
@@ -384,7 +360,6 @@ Make the question:
         try:
             quiz_data = json.loads(quiz_response)
         except json.JSONDecodeError:
-            # Fallback if JSON parsing fails
             quiz_data = {
                 "question": "What is the main concept we've been discussing?",
                 "options": ["Option A", "Option B", "Option C", "Option D"],
@@ -403,5 +378,5 @@ Make the question:
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5001))
     debug = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
-    print(f"🎙️ ProfAI Podcast Backend starting on http://localhost:{port}")
+    print(f"ProfAI backend running on http://localhost:{port}")
     app.run(host='0.0.0.0', port=port, debug=debug)

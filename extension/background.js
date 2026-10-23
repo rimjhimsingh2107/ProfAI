@@ -1,9 +1,7 @@
-// Background service worker for ProfAI Chrome Extension
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log('ProfAI Extension installed');
   
-  // Create context menu for selected text
   chrome.contextMenus.create({
     id: 'explainWithProfAI',
     title: 'Explain with ProfAI',
@@ -17,7 +15,6 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-// Handle context menu clicks
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === 'explainWithProfAI') {
     const selectedText = info.selectionText;
@@ -29,14 +26,11 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 });
 
-// Handle explanation requests
 async function handleExplanationRequest(text, tabId) {
   try {
-    // Get user's learning profile from storage
     const result = await chrome.storage.sync.get(['userProfile', 'authToken']);
     const userProfile = result.userProfile || getDefaultProfile();
     
-    // Send explanation request to backend
     const response = await fetch('http://localhost:5000/api/explain', {
       method: 'POST',
       headers: {
@@ -52,7 +46,6 @@ async function handleExplanationRequest(text, tabId) {
     
     const data = await response.json();
     
-    // Inject explanation into the page
     await chrome.scripting.executeScript({
       target: { tabId: tabId },
       func: showExplanation,
@@ -64,10 +57,8 @@ async function handleExplanationRequest(text, tabId) {
   }
 }
 
-// Handle page analysis
 async function handlePageAnalysis(tab) {
   try {
-    // Extract page content
     const results = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: extractPageContent
@@ -75,7 +66,6 @@ async function handlePageAnalysis(tab) {
     
     const pageContent = results[0].result;
     
-    // Analyze page for learning opportunities
     const response = await fetch('http://localhost:5000/api/analyze-page', {
       method: 'POST',
       headers: {
@@ -90,7 +80,6 @@ async function handlePageAnalysis(tab) {
     
     const analysis = await response.json();
     
-    // Show learning suggestions
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: showLearningSuggestions,
@@ -101,7 +90,7 @@ async function handlePageAnalysis(tab) {
     console.error('Page analysis failed:', error);
   }
 }
-// Function to extract page content (injected into page)
+// runs inside the page via executeScript
 function extractPageContent() {
   const content = {
     headings: Array.from(document.querySelectorAll('h1, h2, h3')).map(h => h.textContent).slice(0, 10),
@@ -113,15 +102,13 @@ function extractPageContent() {
   return content;
 }
 
-// Function to show explanation popup (injected into page)
+// runs inside the page via executeScript
 function showExplanation(selectedText, explanation) {
-  // Remove existing popup
   const existingPopup = document.getElementById('profai-explanation-popup');
   if (existingPopup) {
     existingPopup.remove();
   }
   
-  // Create popup element
   const popup = document.createElement('div');
   popup.id = 'profai-explanation-popup';
   popup.className = 'profai-popup';
@@ -154,7 +141,6 @@ function showExplanation(selectedText, explanation) {
     </div>
   `;
   
-  // Position popup near the selection
   const selection = window.getSelection();
   if (selection.rangeCount > 0) {
     const range = selection.getRangeAt(0);
@@ -167,7 +153,6 @@ function showExplanation(selectedText, explanation) {
   
   document.body.appendChild(popup);
   
-  // Auto-remove after 30 seconds
   setTimeout(() => {
     if (popup.parentNode) {
       popup.remove();
@@ -175,7 +160,7 @@ function showExplanation(selectedText, explanation) {
   }, 30000);
 }
 
-// Function to show learning suggestions (injected into page)
+// runs inside the page via executeScript
 function showLearningSuggestions(analysis) {
   const suggestions = document.createElement('div');
   suggestions.id = 'profai-learning-suggestions';
@@ -222,7 +207,6 @@ window.explainConcept = function(concept) {
   });
 };
 
-// Default learning profile
 function getDefaultProfile() {
   return {
     preferredLearningStyle: 'mixed',

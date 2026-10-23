@@ -10,7 +10,6 @@
     
     document.body.appendChild(assistant);
     
-    // Auto-dismiss after 10 seconds
     setTimeout(() => {
       if (assistant.parentNode) {
         assistant.remove();
@@ -18,7 +17,6 @@
     }, 10000);
   }
   
-  // Initialize on page load
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
       setTimeout(detectAIContent, 1000);
@@ -35,13 +33,11 @@ window.openProfAI = function() {
 };
 
 window.showExplanation = function(selectedText, explanation) {
-  // Remove existing popup
   const existingPopup = document.getElementById('profai-explanation-popup');
   if (existingPopup) {
     existingPopup.remove();
   }
   
-  // Create popup element
   const popup = document.createElement('div');
   popup.id = 'profai-explanation-popup';
   popup.className = 'profai-popup';
@@ -71,7 +67,6 @@ window.showExplanation = function(selectedText, explanation) {
     </div>
   `;
   
-  // Position popup near the selection
   const selection = window.getSelection();
   if (selection.rangeCount > 0) {
     const range = selection.getRangeAt(0);
@@ -84,7 +79,6 @@ window.showExplanation = function(selectedText, explanation) {
   
   document.body.appendChild(popup);
   
-  // Auto-remove after 30 seconds
   setTimeout(() => {
     if (popup.parentNode) {
       popup.remove();

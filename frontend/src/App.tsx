@@ -99,7 +99,6 @@ function App() {
   const microphoneRef = useRef(null);
   const audioPlayerRef = useRef(null);
 
-  // Initialize speech recognition
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'Escape' && (isSpeaking || isListening)) {
@@ -506,7 +505,6 @@ function App() {
     setIsProcessing(true);
     
     try {
-      // Generate quiz based on user responses
       const response = await fetch('http://localhost:5001/api/generate-quiz', {
         method: 'POST',
         headers: {
@@ -531,13 +529,12 @@ function App() {
 
   const handleQuizDecline = () => {
     setShowQuizPrompt(false);
-    setQuestionCount(0); // Reset counter
+    setQuestionCount(0);
   };
 
   const handleQuizAnswer = async (selectedAnswer) => {
     const isCorrect = selectedAnswer === currentQuiz.correctAnswer;
     
-    // Update quiz with result
     setCurrentQuiz(prev => ({
       ...prev,
       userAnswer: selectedAnswer,
@@ -549,7 +546,7 @@ function App() {
     setTimeout(() => {
       setShowQuiz(false);
       setCurrentQuiz(null);
-      setQuestionCount(0); // Reset counter
+      setQuestionCount(0);
     }, 3000);
   };
 
@@ -697,7 +694,7 @@ function App() {
         </div>
       )}
 
-      {/* Professional Header */}
+      {/* Header */}
       <div className="border-b border-gray-700/50 bg-black/20 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
