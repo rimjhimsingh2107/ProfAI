@@ -1,67 +1,64 @@
 # ProfAI
 
-A voice-driven AI tutor that adapts how it explains things to the student in
-front of it.
+A voice tutor you can talk to. Ask it a question out loud (or type it) and it
+answers back in a spoken voice, adjusting how it explains things based on how
+confused you sound.
 
-## Overview
+## What it does
 
-Most tutoring tools explain a concept the same way every time, then repeat
-themselves when a student is lost. ProfAI tracks how the student is actually
-doing and changes its approach — switching to an analogy, slowing down, or
-moving to audio — rather than restating the same explanation louder.
+**Tutor mode.** You ask a question, ProfAI answers, and the answer is read out
+using OpenAI's text-to-speech. Before each request the frontend checks your
+message for words like "confused", "lost" or "got it" and scores it from
+confused to confident. That score picks the instruction sent along with your
+question, so a confused message gets simpler wording and more analogies while
+a confident one gets a quicker answer that goes a bit further.
 
-It runs as a web app alongside a Chrome extension that picks up the page a
-student is reading, so questions can be asked in context instead of copied
-into a separate tab.
+**Podcast mode.** Instead of one answer, you get a short conversation between
+two hosts, Sarah and Marcus, each with their own voice. It's meant to feel like
+listening in on two people talking through the topic. Follow-up questions get
+a shorter back-and-forth.
 
-## How it adapts
+**Quizzes.** Every five questions in tutor mode, ProfAI offers a quick
+multiple-choice question based on what you've been asking about.
 
-Each student carries a profile that the tutor writes back to as it learns more
-about them:
+There's also a Chrome extension in `extension/` for asking about text on any
+page. It's still a work in progress and not hooked up to the current backend.
 
-```python
-profile = {
-    'preferredLearningStyle':   'visual',   # visual | auditory | kinesthetic | mixed
-    'conceptualUnderstanding':  7,          # 1-10
-    'practicalSkills':          6,          # 1-10
-    'preferredPace':            'medium',   # slow | medium | fast
-    'responseToEncouragement':  8,          # 1-10
-}
-```
+## Tech stack
 
-Those fields are separated on purpose. A student can grasp a concept well and
-still not be able to apply it, so conceptual understanding and practical skill
-are tracked independently and pull the explanation in different directions —
-a high conceptual and low practical score gets worked examples rather than
-more theory.
+- Frontend: React, TypeScript, Tailwind CSS, Web Speech API for voice input
+- Backend: Python, Flask
+- AI: OpenAI GPT-4o for answers and quizzes, OpenAI TTS for voices
 
-Learning style changes the form an explanation takes, not just its wording.
-Visual learners get diagrams, step-by-step breakdowns and colour-coded
-structure; auditory learners get verbal explanation, spoken responses and
-sound metaphors; kinesthetic learners get hands-on exercises and
-learning-by-doing; mixed learners get the approach varied by topic.
+## Running it locally
 
-Sitting on top of that, sentiment analysis reads each message for confusion,
-frustration and engagement. That is what triggers a change of approach rather
-than a repeat: detected confusion switches tactic, and `responseToEncouragement`
-decides how much the tone shifts with it. Conversation patterns feed back into
-comprehension estimates and topic mastery, which drive what gets recommended
-next.
+You'll need Node.js, Python 3 and an OpenAI API key.
 
-## Tech Stack
+1. Set up the backend env file:
 
-Frontend
+   ```bash
+   cp backend/.env.example backend/.env
+   ```
 
-- React
-- TypeScript
-- Tailwind CSS
-- Framer Motion
+   Then put your OpenAI key in `backend/.env`.
 
-Backend
+2. Start everything:
 
-- Python
-- Firebase for auth and data
+   ```bash
+   ./start-dev.sh
+   ```
 
-Extension
+   On Windows, run `start-dev.bat` instead.
 
-- Chrome extension for in-page context
+   Or run the two parts yourself:
+
+   ```bash
+   cd backend && pip install -r requirements.txt && python app_podcast.py
+   ```
+
+   ```bash
+   cd frontend && npm install && npm start
+   ```
+
+The frontend runs on http://localhost:3000 and talks to the backend on port
+5001. Voice input works best in Chrome.
